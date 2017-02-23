@@ -1,18 +1,21 @@
+import { IMidiJsonParserRequestEventData } from 'midi-json-parser-worker';
+import { IMidiJsonParserResponseEvent } from './interfaces/midi-json-parser-response-event';
+
 export const load = (url: string) => {
     let index = 0;
 
     const worker = new Worker(url);
 
-    const parseArrayBuffer = (arrayBuffer) => {
+    const parseArrayBuffer = (arrayBuffer: ArrayBuffer) => {
         let currentIndex = index;
 
         index += 1;
 
-        const transferSlice = (byteIndex) => {
+        const transferSlice = (byteIndex: number) => {
             if (byteIndex + 1048576 < arrayBuffer.byteLength) {
                 const slice = arrayBuffer.slice(byteIndex, byteIndex + 1048576);
 
-                worker.postMessage({
+                worker.postMessage(<IMidiJsonParserRequestEventData> {
                     arrayBuffer: slice,
                     byteIndex,
                     byteLength: arrayBuffer.byteLength,
@@ -25,7 +28,7 @@ export const load = (url: string) => {
             } else {
                 const slice = arrayBuffer.slice(byteIndex);
 
-                worker.postMessage({
+                worker.postMessage(<IMidiJsonParserRequestEventData> {
                     arrayBuffer: slice,
                     byteIndex,
                     byteLength: arrayBuffer.byteLength,
@@ -37,7 +40,7 @@ export const load = (url: string) => {
         };
 
         return new Promise((resolve, reject) => {
-            const onMessage = (event) => {
+            const onMessage = (event: IMidiJsonParserResponseEvent) => {
                 const { data: { err, index: i, midiFile } } = event;
 
                 if (i === currentIndex) {
