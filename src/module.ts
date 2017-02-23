@@ -1,4 +1,4 @@
-import { IMidiJsonParserRequestEventData } from 'midi-json-parser-worker';
+import { IMidiFile, IMidiJsonParserRequestEventData } from 'midi-json-parser-worker';
 import { IMidiJsonParserResponseEvent } from './interfaces/midi-json-parser-response-event';
 
 export const load = (url: string) => {
@@ -6,7 +6,7 @@ export const load = (url: string) => {
 
     const worker = new Worker(url);
 
-    const parseArrayBuffer = (arrayBuffer: ArrayBuffer) => {
+    const parseArrayBuffer = (arrayBuffer: ArrayBuffer): Promise<IMidiFile> => {
         let currentIndex = index;
 
         index += 1;
