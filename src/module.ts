@@ -1,6 +1,8 @@
 import { IMidiFile, IMidiJsonParserRequestEventData } from 'midi-json-parser-worker';
 import { IMidiJsonParserResponseEvent } from './interfaces/midi-json-parser-response-event';
 
+export { IMidiFile };
+
 export const load = (url: string) => {
     let index = 0;
 
