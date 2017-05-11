@@ -1,66 +1,45 @@
-import { IMidiFile, IMidiJsonParserRequestEventData } from 'midi-json-parser-worker';
-import { IMidiJsonParserResponseEvent } from './interfaces/midi-json-parser-response-event';
+import { IMidiFile, IParseRequest, IParseResponse, IWorkerEvent } from 'midi-json-parser-worker';
+
+const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
+
+const generateUniqueId = (set: Set<number>) => {
+    let id = Math.round(Math.random() * MAX_SAFE_INTEGER);
+
+    while (set.has(id)) {
+        id = Math.round(Math.random() * MAX_SAFE_INTEGER);
+    }
+
+    return id;
+};
 
 export { IMidiFile };
 
 export const load = (url: string) => {
-    let index = 0;
-
     const worker = new Worker(url);
 
+    const ongoingRecordingRequests: Set<number> = new Set();
+
     const parseArrayBuffer = (arrayBuffer: ArrayBuffer): Promise<IMidiFile> => {
-        let currentIndex = index;
-
-        index += 1;
-
-        const transferSlice = (byteIndex: number) => {
-            if (byteIndex + 1048576 < arrayBuffer.byteLength) {
-                const slice = arrayBuffer.slice(byteIndex, byteIndex + 1048576);
-
-                worker.postMessage(<IMidiJsonParserRequestEventData> {
-                    arrayBuffer: slice,
-                    byteIndex,
-                    byteLength: arrayBuffer.byteLength,
-                    index: currentIndex
-                }, [
-                    slice
-                ]);
-
-                setTimeout(() => transferSlice(byteIndex + 1048576));
-            } else {
-                const slice = arrayBuffer.slice(byteIndex);
-
-                worker.postMessage(<IMidiJsonParserRequestEventData> {
-                    arrayBuffer: slice,
-                    byteIndex,
-                    byteLength: arrayBuffer.byteLength,
-                    index: currentIndex
-                }, [
-                    slice
-                ]);
-            }
-        };
-
         return new Promise((resolve, reject) => {
-            const onMessage = (event: IMidiJsonParserResponseEvent) => {
-                const { data: { err, index: i, midiFile } } = event;
+            const id = generateUniqueId(ongoingRecordingRequests);
 
-                if (i === currentIndex) {
+            const onMessage = ({ data }: IWorkerEvent) => {
+                if (data.id === id) {
+                    ongoingRecordingRequests.delete(id);
+
                     worker.removeEventListener('message', onMessage);
 
-                    if (midiFile === null) {
-                        const { message } = err;
-
-                        reject(new Error(message));
-                    } else {
-                        resolve(midiFile);
+                    if (data.error === null) {
+                        resolve((<IParseResponse> data).result.midiFile);
+                    } else {
+                        reject(new Error(data.error.message));
                     }
                 }
             };
 
             worker.addEventListener('message', onMessage);
 
-            transferSlice(0);
+            worker.postMessage(<IParseRequest> { id, method: 'parse', params: { arrayBuffer } }, [ arrayBuffer ]);
         });
     };
 
