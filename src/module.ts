@@ -12,7 +12,7 @@ const generateUniqueId = (set: Set<number>) => {
     return id;
 };
 
-export { IMidiFile };
+export { IMidiFile };
 
 export const load = (url: string) => {
     const worker = new Worker(url);
@@ -23,7 +23,7 @@ export const load = (url: string) => {
         return new Promise((resolve, reject) => {
             const id = generateUniqueId(ongoingRecordingRequests);
 
-            const onMessage = ({ data }: IWorkerEvent) => {
+            const onMessage = ({ data }: IWorkerEvent) => {
                 if (data.id === id) {
                     ongoingRecordingRequests.delete(id);
 
