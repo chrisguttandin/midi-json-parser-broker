@@ -1,38 +1,21 @@
-import { addUniqueNumber } from 'fast-unique-numbers';
-import { IMidiFile, IParseRequest, IParseResponse, IWorkerEvent } from 'midi-json-parser-worker';
+import { createBroker } from 'broker-factory';
+import { IMidiFile, TMidiJsonParserWorkerDefinition } from 'midi-json-parser-worker';
+import { IMidiJsonParserBrokerDefinition } from './interfaces';
+import { TMidiJsonParserBrokerLoader, TMidiJsonParserBrokerWrapper } from './types';
 
-export { IMidiFile };
+export * from './interfaces';
+export * from './types';
 
-export const load = (url: string) => {
+export const wrap: TMidiJsonParserBrokerWrapper = createBroker<IMidiJsonParserBrokerDefinition, TMidiJsonParserWorkerDefinition>({
+    parseArrayBuffer: ({ call }) => {
+        return async (arrayBuffer: ArrayBuffer): Promise<IMidiFile> => {
+            return call('parse', { arrayBuffer }, [ arrayBuffer ]);
+        };
+    }
+});
+
+export const load: TMidiJsonParserBrokerLoader = (url: string) => {
     const worker = new Worker(url);
 
-    const ongoingRecordingRequests: Set<number> = new Set();
-
-    const parseArrayBuffer = (arrayBuffer: ArrayBuffer): Promise<IMidiFile> => {
-        return new Promise((resolve, reject) => {
-            const id = addUniqueNumber(ongoingRecordingRequests);
-
-            const onMessage = ({ data }: IWorkerEvent) => {
-                if (data.id === id) {
-                    ongoingRecordingRequests.delete(id);
-
-                    worker.removeEventListener('message', onMessage);
-
-                    if (data.error === null) {
-                        resolve((<IParseResponse> data).result.midiFile);
-                    } else {
-                        reject(new Error(data.error.message));
-                    }
-                }
-            };
-
-            worker.addEventListener('message', onMessage);
-
-            worker.postMessage(<IParseRequest> { id, method: 'parse', params: { arrayBuffer } }, [ arrayBuffer ]);
-        });
-    };
-
-    return {
-        parseArrayBuffer
-    };
+    return wrap(worker);
 };
