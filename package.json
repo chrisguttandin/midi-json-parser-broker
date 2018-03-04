@@ -3,6 +3,11 @@
   "bugs": {
     "url": "https://github.com/chrisguttandin/midi-json-parser-broker/issues"
   },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
   "dependencies": {
     "babel-runtime": "^6.26.0",
     "broker-factory": "^1.2.11",
@@ -51,8 +56,8 @@
     "webpack": "^4.1.0"
   },
   "files": [
-    "build/es5/",
     "build/es2015/",
+    "build/es5/",
     "build/esm/",
     "src/"
   ],
