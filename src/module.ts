@@ -3,8 +3,12 @@ import { IMidiFile, TMidiJsonParserWorkerDefinition } from 'midi-json-parser-wor
 import { IMidiJsonParserBrokerDefinition } from './interfaces';
 import { TMidiJsonParserBrokerLoader, TMidiJsonParserBrokerWrapper } from './types';
 
-export * from './interfaces';
-export * from './types';
+/*
+ * @todo Explicitly referencing the barrel file seems to be necessary when enabling the
+ * isolatedModules compiler option.
+ */
+export * from './interfaces/index';
+export * from './types/index';
 
 export const wrap: TMidiJsonParserBrokerWrapper = createBroker<IMidiJsonParserBrokerDefinition, TMidiJsonParserWorkerDefinition>({
     parseArrayBuffer: ({ call }) => {
