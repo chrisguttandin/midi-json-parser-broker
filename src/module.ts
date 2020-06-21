@@ -13,7 +13,7 @@ export * from './types/index';
 export const wrap: TMidiJsonParserBrokerWrapper = createBroker<IMidiJsonParserBrokerDefinition, TMidiJsonParserWorkerDefinition>({
     parseArrayBuffer: ({ call }) => {
         return async (arrayBuffer: ArrayBuffer): Promise<IMidiFile> => {
-            return call('parse', { arrayBuffer }, [ arrayBuffer ]);
+            return call('parse', { arrayBuffer }, [arrayBuffer]);
         };
     }
 });
