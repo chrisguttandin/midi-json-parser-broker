@@ -11,7 +11,7 @@
     "dependencies": {
         "@babel/runtime": "^7.23.8",
         "broker-factory": "^3.0.90",
-        "midi-json-parser-worker": "^8.1.32",
+        "midi-json-parser-worker": "^8.1.33",
         "tslib": "^2.6.2"
     },
     "description": "The broker which is used by the midi-json-parser package.",
